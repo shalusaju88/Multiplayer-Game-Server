@@ -1,4 +1,5 @@
 const gameManager = require('./GameManager');
+const db = require('./db');
 
 module.exports = function registerSocketHandlers(io) {
   gameManager.setIO(io);
@@ -10,6 +11,12 @@ module.exports = function registerSocketHandlers(io) {
     socket.on('register', ({ name }) => {
       const player = gameManager.addPlayer(socket.id, name);
       socket.emit('registered', { player: player.toJSON() });
+
+      // Record this session as a login event
+      const ip = socket.handshake.headers['x-forwarded-for'] ||
+                 socket.handshake.address || 'unknown';
+      db.recordLogin(player.name, ip);
+
       console.log(`    Registered: ${player.name} (${socket.id})`);
     });
 

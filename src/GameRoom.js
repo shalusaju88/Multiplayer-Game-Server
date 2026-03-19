@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const config = require('../config');
+const db = require('./db');
 
 class GameRoom {
   constructor(name, hostId, hostName, io) {
@@ -56,6 +57,18 @@ class GameRoom {
       this.gameLoop = null;
     }
     const leaderboard = this.getLeaderboard();
+
+    // ── Persist game results to SQL ──────────────────────────────────────────
+    this.players.forEach(player => {
+      db.recordGameResult({
+        playerName: player.name,
+        roomName:   this.name,
+        kills:      player.kills,
+        deaths:     player.deaths,
+        score:      player.score,
+      });
+    });
+
     this.io.to(this.id).emit('gameOver', { leaderboard });
   }
 

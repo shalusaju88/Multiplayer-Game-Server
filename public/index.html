@@ -11,8 +11,50 @@
 </head>
 <body>
 
+  <!-- ── AUTH VIEW ─────────────────────────────────────────────────────── -->
+  <div id="auth-view" class="view active">
+    <div class="bg-orbs">
+      <div class="orb orb1"></div>
+      <div class="orb orb2"></div>
+      <div class="orb orb3"></div>
+    </div>
+
+    <div class="auth-center">
+      <h1 class="logo" style="text-align:center;margin-bottom:8px">🎮 Arena<span>Blast</span></h1>
+      <p style="text-align:center;color:var(--clr-muted);margin-bottom:28px;font-size:.95rem">Real-time Multiplayer · Powered by Node.js + SQLite</p>
+
+      <!-- Tab bar -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</button>
+        <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <div class="glass auth-card">
+        <!-- Status message -->
+        <div id="auth-msg" class="auth-msg hidden"></div>
+
+        <div class="field-group">
+          <label for="auth-name">Username</label>
+          <input id="auth-name" type="text" placeholder="Your in-game name…" maxlength="20" autocomplete="off" />
+        </div>
+        <div class="field-group">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" type="password" placeholder="••••••••" maxlength="50" autocomplete="off" />
+        </div>
+
+        <button id="btn-auth" class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doAuth()">
+          <span id="btn-auth-label">⚡ Login</span>
+        </button>
+
+        <p style="text-align:center;margin-top:14px;font-size:.85rem;color:var(--clr-muted)">
+          New player? Switch to <strong>Register</strong> tab above.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- ── LOBBY VIEW ─────────────────────────────────────────────────────── -->
-  <div id="lobby-view" class="view active">
+  <div id="lobby-view" class="view">
     <div class="bg-orbs">
       <div class="orb orb1"></div>
       <div class="orb orb2"></div>
@@ -21,35 +63,33 @@
 
     <header class="lobby-header glass">
       <h1 class="logo">🎮 Arena<span>Blast</span></h1>
-      <div class="server-stats" id="server-stats">Connecting…</div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="server-stats" id="server-stats">Connecting…</div>
+        <button id="btn-logout" class="btn btn-danger" style="font-size:.8rem;padding:6px 14px" onclick="doLogout()">🚪 Logout</button>
+      </div>
     </header>
 
-    <div class="lobby-body">
+    <!-- Lobby tabs -->
+    <div class="lobby-tabs">
+      <button class="lobby-tab active" id="ltab-create" onclick="switchLobbyTab('create')">⚔️ Create Room</button>
+      <button class="lobby-tab" id="ltab-join" onclick="switchLobbyTab('join')">🌍 Join Room</button>
+      <button class="lobby-tab" id="ltab-history" onclick="switchLobbyTab('history')">📋 My History</button>
+    </div>
 
-      <!-- LEFT: Join / Create -->
-      <aside class="lobby-card glass" id="join-panel">
+    <!-- CREATE TAB -->
+    <div id="lobby-create" class="lobby-body">
+      <!-- LEFT: Create -->
+      <aside class="lobby-card glass" id="create-panel">
         <h2>Enter the Arena</h2>
 
         <div class="field-group">
-          <label for="player-name">Your Name</label>
-          <input id="player-name" type="text" placeholder="Enter username…" maxlength="20" autocomplete="off" />
-        </div>
-
-        <div class="field-group">
-          <label for="room-name">Room Name <span class="optional">(to create new)</span></label>
+          <label for="room-name">Room Name</label>
           <input id="room-name" type="text" placeholder="My Awesome Room" maxlength="30" autocomplete="off" />
         </div>
 
-        <button id="btn-create" class="btn btn-primary" disabled>
+        <button id="btn-create" class="btn btn-primary">
           <span>⚡ Create Room</span>
         </button>
-
-        <div class="divider"><span>or join below</span></div>
-
-        <!-- Live Room List -->
-        <div class="room-list" id="room-list">
-          <p class="empty-msg">No rooms yet. Create one!</p>
-        </div>
       </aside>
 
       <!-- RIGHT: Instructions -->
@@ -66,15 +106,56 @@
           <div class="badge">🌐 Real-time</div>
           <div class="badge">⚔️ PvP Arena</div>
           <div class="badge">💬 In-game Chat</div>
+          <div class="badge">🗄️ SQL History</div>
         </div>
 
         <div class="tech-stack">
           <p>Powered by</p>
           <div class="tech-pills">
-            <span>Node.js</span><span>Express</span><span>Socket.IO</span>
+            <span>Node.js</span><span>Express</span><span>Socket.IO</span><span>SQLite</span>
           </div>
         </div>
       </aside>
+    </div>
+
+    <!-- JOIN TAB -->
+    <div id="lobby-join" class="lobby-body hidden" style="flex-direction:column; gap:16px;">
+      <div class="lobby-card glass" style="padding: 24px;">
+        <div class="field-group">
+          <label for="join-room-name" style="margin-bottom:6px;">Join by Exact Name</label>
+          <div style="display:flex; gap:8px;">
+            <input id="join-room-name" type="text" placeholder="Type room name..." maxlength="30" autocomplete="off" style="flex:1" />
+            <button id="btn-join-name" class="btn btn-success" style="padding: 12px 16px;">Join</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lobby-card glass" style="flex:1; display:flex; flex-direction:column; padding: 24px;">
+        <h2 style="margin-bottom: 16px; font-size: 1.2rem;">🌍 Active Rooms</h2>
+        <div class="room-list" id="room-list">
+          <p class="empty-msg">No rooms yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="lobby-history" class="lobby-body hidden">
+      <div class="lobby-card glass" style="flex:1">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h2>📋 Login History</h2>
+          <button class="btn" style="font-size:.8rem;padding:6px 14px;background:rgba(255,255,255,.08)" onclick="loadHistory()">🔄 Refresh</button>
+        </div>
+        <div id="login-history-container">
+          <p class="empty-msg">Loading…</p>
+        </div>
+      </div>
+
+      <div class="lobby-card glass" style="flex:1">
+        <h2>🎮 Game History</h2>
+        <div id="game-history-container">
+          <p class="empty-msg">Loading…</p>
+        </div>
+      </div>
     </div>
   </div>
 

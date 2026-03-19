@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const gameManager = require('../GameManager');
+const db = require('../db');
 
 // GET /api/rooms - List all active rooms
 router.get('/rooms', (req, res) => {
@@ -46,6 +47,26 @@ router.get('/leaderboard', (req, res) => {
 // GET /api/stats - Server statistics
 router.get('/stats', (req, res) => {
   res.json({ success: true, stats: gameManager.getStats() });
+});
+
+// GET /api/history/logins/:playerName - Login history for a player
+router.get('/history/logins/:playerName', async (req, res) => {
+  try {
+    const history = await db.getLoginHistory(req.params.playerName);
+    res.json({ success: true, player: req.params.playerName, count: history.length, history });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/history/games/:playerName - Game play history for a player
+router.get('/history/games/:playerName', async (req, res) => {
+  try {
+    const history = await db.getGameHistory(req.params.playerName);
+    res.json({ success: true, player: req.params.playerName, count: history.length, history });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 module.exports = router;

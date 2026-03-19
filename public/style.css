@@ -24,6 +24,10 @@ html, body {
   overflow: hidden;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* ── Glass Utility ───────────────────────────────────────────────────────── */
 .glass {
   background: var(--surface);
@@ -262,3 +266,135 @@ input::placeholder { color: rgba(255,255,255,0.2); }
 /* ── Waiting overlay ─────────────────────────────────────────────────────── */
 .pulse { animation: pulse 1.4s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ── CSS alias for inline styles using var(--clr-muted) ─────────────────── */
+:root { --clr-muted: #7986cb; }
+
+/* ── Auth View ───────────────────────────────────────────────────────────── */
+.auth-center {
+  z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  padding: 24px 20px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 0 0;
+  padding: 6px;
+}
+.auth-tab {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.auth-tab.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(108,99,255,0.4);
+}
+
+.auth-card {
+  border-radius: 0 0 var(--radius) var(--radius);
+  border-top: none !important;
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-msg {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+.auth-msg.hidden { display: none; }
+.auth-error { background: rgba(239,83,80,0.15); color: #ff8a80; border: 1px solid rgba(239,83,80,0.3); }
+.auth-ok    { background: rgba(102,187,106,0.15); color: #a5d6a7; border: 1px solid rgba(102,187,106,0.3); }
+
+/* Password input shares text input styling */
+input[type="password"] {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+input[type="password"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.2);
+}
+
+/* ── Lobby Tabs ──────────────────────────────────────────────────────────── */
+.lobby-tabs {
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+  padding: 10px 24px 0;
+}
+.lobby-tab {
+  border: none;
+  border-radius: 10px 10px 0 0;
+  background: rgba(255,255,255,0.05);
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+.lobby-tab.active {
+  background: rgba(108,99,255,0.18);
+  color: #fff;
+  border-color: rgba(108,99,255,0.45);
+}
+.lobby-tab:hover:not(.active) { background: rgba(255,255,255,0.08); color: var(--text); }
+
+/* ── History Tables ──────────────────────────────────────────────────────── */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.history-table th {
+  color: var(--muted);
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.history-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text);
+}
+.history-table tr:hover td { background: rgba(255,255,255,0.03); }
+#login-history-container, #game-history-container {
+  overflow-y: auto; max-height: calc(100% - 48px);
+  scrollbar-width: thin; scrollbar-color: var(--accent) transparent;
+}

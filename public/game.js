@@ -4,8 +4,157 @@
 
 const socket = io();
 
+// ── Auth state ────────────────────────────────────────────────────────────────
+let authMode = 'login'; // 'login' | 'register'
+
+window.switchAuthTab = function(mode) {
+  authMode = mode;
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+  document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+  document.getElementById('btn-auth-label').textContent = mode === 'login' ? '⚡ Login' : '🆕 Register';
+};
+
+window.doAuth = async function() {
+  const name     = document.getElementById('auth-name').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const msgEl    = document.getElementById('auth-msg');
+
+  if (!name || !password) { showAuthMsg('Please fill in both fields.', 'error'); return; }
+
+  const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+  try {
+    const res  = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, password }),
+    });
+    const data = await res.json();
+
+    if (!data.success) { showAuthMsg(data.error || 'Failed', 'error'); return; }
+
+    if (authMode === 'register') {
+      showAuthMsg('Account created! Logging you in…', 'ok');
+      // Auto-login after register
+      const loginRes  = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, password }),
+      });
+      const loginData = await loginRes.json();
+      if (!loginData.success) { showAuthMsg(loginData.error || 'Login failed', 'error'); return; }
+      enterLobby(loginData.player.name);
+    } else {
+      enterLobby(data.player.name);
+    }
+  } catch (e) {
+    showAuthMsg('Network error: ' + e.message, 'error');
+  }
+};
+
+function showAuthMsg(text, type) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = text;
+  el.className = 'auth-msg ' + (type === 'error' ? 'auth-error' : 'auth-ok');
+  el.classList.remove('hidden');
+}
+
+function enterLobby(name) {
+  myName = name;
+  sessionStorage.setItem('playerName', name);
+  // Switch view
+  document.getElementById('auth-view').classList.remove('active');
+  document.getElementById('lobby-view').classList.add('active');
+  switchLobbyTab('create');
+  
+  // Connect socket with this name
+  socket.emit('register', { name });
+  socket.emit('getRooms');
+  fetchStats();
+}
+
+window.doLogout = function() {
+  sessionStorage.removeItem('playerName');
+  myName = '';
+  myId   = null;
+  document.getElementById('lobby-view').classList.remove('active');
+  document.getElementById('auth-view').classList.add('active');
+  document.getElementById('auth-name').value = '';
+  document.getElementById('auth-password').value = '';
+  document.getElementById('auth-msg').classList.add('hidden');
+};
+
+// ── Lobby tab switching ──────────────────────────────────────────────────────
+window.switchLobbyTab = function(tab) {
+  document.getElementById('ltab-create')?.classList.toggle('active', tab === 'create');
+  document.getElementById('ltab-join')?.classList.toggle('active', tab === 'join');
+  document.getElementById('ltab-history')?.classList.toggle('active', tab === 'history');
+  
+  document.getElementById('lobby-create')?.classList.toggle('hidden', tab !== 'create');
+  document.getElementById('lobby-join')?.classList.toggle('hidden', tab !== 'join');
+  document.getElementById('lobby-history')?.classList.toggle('hidden', tab !== 'history');
+  
+  if (tab === 'history') loadHistory();
+};
+
+// ── History loading ──────────────────────────────────────────────────────────
+window.loadHistory = async function() {
+  if (!myName) return;
+
+  // Login history
+  const loginEl = document.getElementById('login-history-container');
+  const gameEl  = document.getElementById('game-history-container');
+  loginEl.innerHTML = '<p class="empty-msg">Loading…</p>';
+  gameEl.innerHTML  = '<p class="empty-msg">Loading…</p>';
+
+  try {
+    const lr   = await fetch(`/api/history/logins/${encodeURIComponent(myName)}`);
+    const ld   = await lr.json();
+    if (ld.history && ld.history.length > 0) {
+      loginEl.innerHTML = `
+        <table class="history-table">
+          <thead><tr><th>#</th><th>Time</th><th>IP</th></tr></thead>
+          <tbody>
+            ${ld.history.map((h, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td>${new Date(h.logged_in_at).toLocaleString()}</td>
+                <td>${escHtml(h.ip_address)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } else {
+      loginEl.innerHTML = '<p class="empty-msg">No logins recorded yet.</p>';
+    }
+  } catch { loginEl.innerHTML = '<p class="empty-msg">Error loading login history.</p>'; }
+
+  try {
+    const gr   = await fetch(`/api/history/games/${encodeURIComponent(myName)}`);
+    const gd   = await gr.json();
+    if (gd.history && gd.history.length > 0) {
+      gameEl.innerHTML = `
+        <table class="history-table">
+          <thead><tr><th>#</th><th>Room</th><th>Kills</th><th>Deaths</th><th>Score</th><th>Date</th></tr></thead>
+          <tbody>
+            ${gd.history.map((h, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td>${escHtml(h.room_name)}</td>
+                <td>${h.kills}</td>
+                <td>${h.deaths}</td>
+                <td style="color:#ffd700;font-weight:700">${h.score}</td>
+                <td>${new Date(h.played_at).toLocaleString()}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } else {
+      gameEl.innerHTML = '<p class="empty-msg">No games played yet.</p>';
+    }
+  } catch { gameEl.innerHTML = '<p class="empty-msg">Error loading game history.</p>'; }
+};
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let myId = null;
+let currentRooms = [];
 let myRoomId = null;
 let myName = '';
 let isHost = false;
@@ -27,11 +176,13 @@ let mouseX = 0, mouseY = 0;
 // ── Lobby DOM refs ────────────────────────────────────────────────────────────
 const lobbyView   = document.getElementById('lobby-view');
 const gameView    = document.getElementById('game-view');
-const playerInput = document.getElementById('player-name');
 const roomInput   = document.getElementById('room-name');
 const btnCreate   = document.getElementById('btn-create');
 const roomList    = document.getElementById('room-list');
+const joinNameInput = document.getElementById('join-room-name');
+const btnJoinName   = document.getElementById('btn-join-name');
 const statsEl     = document.getElementById('server-stats');
+
 
 // ── Game HUD refs ─────────────────────────────────────────────────────────────
 const hudRoomName = document.getElementById('hud-room-name');
@@ -50,6 +201,7 @@ const overlayContent = document.getElementById('overlay-content');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function switchView(show) {
+  document.getElementById('auth-view').classList.toggle('active', show === 'auth');
   lobbyView.classList.toggle('active', show === 'lobby');
   gameView.classList.toggle('active', show === 'game');
 }
@@ -69,23 +221,38 @@ function hideOverlay() {
 }
 
 // ── Lobby input logic ─────────────────────────────────────────────────────────
-playerInput.addEventListener('input', () => {
-  btnCreate.disabled = !playerInput.value.trim();
-});
-
 btnCreate.addEventListener('click', () => {
-  const name = playerInput.value.trim();
-  const room = roomInput.value.trim() || `${name}'s Room`;
-  if (!name) return;
-  myName = name;
-  socket.emit('register', { name });
-});
-
-// ── Socket: Registered → then create room ────────────────────────────────────
-socket.on('registered', ({ player }) => {
-  myId = player.id;
+  if (!myName) return;
   const roomName = roomInput.value.trim() || `${myName}'s Room`;
   socket.emit('createRoom', { roomName });
+});
+
+roomInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') btnCreate.click();
+});
+
+btnJoinName.addEventListener('click', () => {
+  if (!myName) return;
+  const nameToJoin = joinNameInput.value.trim().toLowerCase();
+  if (!nameToJoin) return;
+  
+  const room = currentRooms.find(r => r.name.toLowerCase() === nameToJoin);
+  if (room) {
+    joinRoom(room.id);
+    joinNameInput.value = ''; // clear upon success
+  } else {
+    alert('Room not found! Check the spelling and try again.');
+  }
+});
+
+joinNameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') btnJoinName.click();
+});
+
+// ── Socket: Registered (after login/auth) ────────────────────────────────────
+socket.on('registered', ({ player }) => {
+  myId = player.id;
+  // Room creation is triggered by btn-create click; no auto-create here
 });
 
 // ── Socket: Room Created ──────────────────────────────────────────────────────
@@ -206,8 +373,8 @@ socket.on('gameOver', ({ leaderboard }) => {
 });
 
 // ── Socket: Room List ─────────────────────────────────────────────────────────
-socket.on('roomList', ({ rooms }) => renderRoomList(rooms));
-socket.on('roomListUpdated', ({ rooms }) => renderRoomList(rooms));
+socket.on('roomList', ({ rooms }) => { currentRooms = rooms; renderRoomList(rooms); });
+socket.on('roomListUpdated', ({ rooms }) => { currentRooms = rooms; renderRoomList(rooms); });
 
 // ── Socket: Error ─────────────────────────────────────────────────────────────
 socket.on('error', ({ message }) => {
@@ -219,10 +386,11 @@ socket.on('chatMessage', ({ playerName, playerColor, message }) => {
   appendChat(playerName, playerColor, message);
 });
 
-// ── Connect → fetch room list ─────────────────────────────────────────────────
+// ── Connect → fetch room list (if already logged in) ─────────────────────────
 socket.on('connect', () => {
-  socket.emit('getRooms');
-  fetchStats();
+  // Only auto-join if already authenticated in this session
+  const saved = sessionStorage.getItem('playerName');
+  if (saved) enterLobby(saved);
 });
 
 // ── HUD ───────────────────────────────────────────────────────────────────────
@@ -311,13 +479,8 @@ function renderRoomList(rooms) {
 }
 
 window.joinRoom = function(roomId) {
-  const name = playerInput.value.trim();
-  if (!name) { alert('Please enter your name first!'); playerInput.focus(); return; }
-  myName = name;
-  socket.emit('register', { name });
-  socket.once('registered', () => {
-    socket.emit('joinRoom', { roomId });
-  });
+  if (!myName) { alert('Please log in first!'); return; }
+  socket.emit('joinRoom', { roomId });
 };
 
 // ── Leave Game ────────────────────────────────────────────────────────────────
