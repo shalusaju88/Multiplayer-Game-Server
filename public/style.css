@@ -1,0 +1,264 @@
+/* ── Reset & Variables ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #090b13;
+  --surface: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.1);
+  --accent: #6c63ff;
+  --accent2: #ff6b6b;
+  --accent3: #4ecdc4;
+  --text: #e8eaf6;
+  --muted: #7986cb;
+  --danger: #ef5350;
+  --success: #66bb6a;
+  --font: 'Outfit', sans-serif;
+  --radius: 16px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  overflow: hidden;
+}
+
+/* ── Glass Utility ───────────────────────────────────────────────────────── */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ── Views ───────────────────────────────────────────────────────────────── */
+.view { display: none; width: 100vw; height: 100vh; position: fixed; inset: 0; }
+.view.active { display: flex; flex-direction: column; }
+
+/* ── Background Orbs ─────────────────────────────────────────────────────── */
+.bg-orbs { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.orb {
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35;
+  animation: floatOrb 12s ease-in-out infinite alternate;
+}
+.orb1 { width: 520px; height: 520px; background: #6c63ff; top: -100px; left: -100px; animation-duration: 10s; }
+.orb2 { width: 400px; height: 400px; background: #ff6b6b; bottom: -80px; right: -60px; animation-duration: 14s; }
+.orb3 { width: 300px; height: 300px; background: #4ecdc4; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-duration: 8s; }
+@keyframes floatOrb {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(30px, 20px) scale(1.1); }
+}
+
+/* ── Lobby Header ────────────────────────────────────────────────────────── */
+.lobby-header {
+  z-index: 10;
+  margin: 18px 24px 0;
+  padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-size: 1.7rem; font-weight: 900; letter-spacing: -0.5px; }
+.logo span { color: var(--accent); }
+.server-stats { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.5px; }
+
+/* ── Lobby Body ──────────────────────────────────────────────────────────── */
+.lobby-body {
+  z-index: 10;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 20px;
+  padding: 18px 24px 24px;
+  overflow: hidden;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.lobby-card {
+  padding: 28px;
+  display: flex; flex-direction: column; gap: 18px;
+  overflow: hidden;
+}
+.lobby-card h2 {
+  font-size: 1.3rem; font-weight: 700;
+  background: linear-gradient(135deg, #fff 40%, var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* ── Fields ──────────────────────────────────────────────────────────────── */
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+.field-group label .optional { text-transform: none; font-weight: 400; }
+input[type="text"] {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.2);
+}
+input::placeholder { color: rgba(255,255,255,0.2); }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  border: none; border-radius: 10px; cursor: pointer;
+  padding: 12px 20px; font-family: var(--font); font-size: 0.9rem; font-weight: 700;
+  transition: all 0.2s; letter-spacing: 0.3px;
+}
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #a29bfe);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+}
+.btn-primary:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(108,99,255,0.55); }
+.btn-success {
+  background: linear-gradient(135deg, var(--accent3), #00b09b);
+  color: #000; font-weight: 700;
+  box-shadow: 0 4px 18px rgba(78,205,196,0.4);
+}
+.btn-success:hover { transform: translateY(-2px); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #c62828; }
+.btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+.divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 0.78rem; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── Room List ───────────────────────────────────────────────────────────── */
+.room-list {
+  flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+  scrollbar-width: thin; scrollbar-color: var(--accent) transparent;
+}
+.empty-msg { color: var(--muted); font-size: 0.85rem; text-align: center; margin-top: 20px; }
+
+.room-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  animation: fadeIn 0.3s ease;
+  transition: border-color 0.2s;
+}
+.room-card:hover { border-color: var(--accent); }
+.room-info .room-name { font-weight: 700; font-size: 0.95rem; }
+.room-info .room-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.room-status {
+  font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.room-status.waiting  { background: rgba(102,187,106,0.18); color: var(--success); }
+.room-status.in-progress { background: rgba(255,107,107,0.18); color: var(--accent2); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Instructions ────────────────────────────────────────────────────────── */
+.how-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.how-list li { display: flex; align-items: center; gap: 14px; font-size: 0.88rem; }
+.key {
+  background: rgba(255,255,255,0.1); border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 9px; font-size: 0.75rem; font-weight: 700;
+  white-space: nowrap; min-width: 54px; text-align: center;
+}
+.badge-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.badge {
+  background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.35);
+  border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; font-weight: 600; color: #a29bfe;
+}
+.tech-stack p { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
+.tech-pills { display: flex; gap: 8px; }
+.tech-pills span {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 12px; font-size: 0.78rem; color: var(--muted);
+}
+
+/* ── HUD ─────────────────────────────────────────────────────────────────── */
+#game-view { flex-direction: column; position: relative; }
+.hud {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 20px; padding: 10px 22px;
+  z-index: 20; white-space: nowrap; border-radius: 50px;
+}
+.hud-left, .hud-right { display: flex; align-items: center; gap: 12px; font-size: 0.85rem; }
+.hud-sep { color: var(--border); }
+#hud-room-name { font-weight: 700; color: var(--accent); }
+#hud-timer { font-weight: 600; font-variant-numeric: tabular-nums; }
+.hud-center { display: flex; align-items: center; gap: 8px; }
+.hud-hp-bar { width: 100px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.hud-hp-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #ff6b6b, #ff8e53); transition: width 0.3s; }
+#hud-hp-text { font-size: 0.75rem; color: var(--muted); }
+
+/* ── Canvas ──────────────────────────────────────────────────────────────── */
+#game-canvas { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ── Chat Panel ──────────────────────────────────────────────────────────── */
+#chat-panel {
+  position: absolute; bottom: 20px; left: 20px;
+  width: 300px; display: flex; flex-direction: column; gap: 8px;
+  padding: 14px; z-index: 20; transition: opacity 0.2s;
+}
+#chat-panel.hidden { opacity: 0; pointer-events: none; }
+#chat-messages {
+  height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+  scrollbar-width: thin;
+}
+.chat-msg { font-size: 0.8rem; line-height: 1.4; }
+.chat-msg .author { font-weight: 700; }
+.chat-input-row { display: flex; gap: 6px; }
+.chat-input-row input { flex: 1; padding: 8px 12px; font-size: 0.82rem; border-radius: 8px; }
+.chat-input-row button { padding: 8px 14px; border-radius: 8px; border: none; background: var(--accent); color: #fff; cursor: pointer; font-weight: 700; font-size: 0.82rem; }
+
+/* ── Leaderboard ─────────────────────────────────────────────────────────── */
+#leaderboard-panel {
+  position: absolute; right: 16px; top: 70px;
+  width: 200px; padding: 16px; z-index: 20;
+}
+#leaderboard-panel h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; color: #ffd700; }
+#leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+#leaderboard-list li {
+  font-size: 0.78rem; display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 8px; border-radius: 8px; background: rgba(255,255,255,0.04);
+}
+#leaderboard-list li .lb-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
+#leaderboard-list li .lb-score { color: #ffd700; font-weight: 700; }
+
+/* ── Kill Feed ───────────────────────────────────────────────────────────── */
+#kill-feed {
+  position: absolute; right: 230px; top: 70px; width: 220px; z-index: 20;
+  display: flex; flex-direction: column; gap: 4px; pointer-events: none;
+}
+.kill-entry {
+  background: rgba(0,0,0,0.6); border-radius: 6px; padding: 5px 10px;
+  font-size: 0.75rem; animation: slideIn 0.3s, fadeOut 1s 2.5s forwards;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeOut { to { opacity: 0; } }
+
+/* ── Overlay ─────────────────────────────────────────────────────────────── */
+.overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center; z-index: 30;
+  backdrop-filter: blur(4px);
+}
+.overlay.hidden { display: none; }
+.overlay-box { padding: 40px 48px; text-align: center; min-width: 340px; }
+.overlay-box h2 { font-size: 2rem; font-weight: 900; margin-bottom: 20px; }
+.overlay-box .lb-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.overlay-box .lb-table th, .overlay-box .lb-table td { padding: 8px 12px; text-align: left; font-size: 0.82rem; }
+.overlay-box .lb-table th { color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+.overlay-box .lb-table td { border-bottom: 1px solid rgba(255,255,255,0.04); }
+
+/* ── Leave Button ────────────────────────────────────────────────────────── */
+.leave-btn { position: absolute; top: 14px; right: 14px; z-index: 25; }
+
+/* ── Waiting overlay ─────────────────────────────────────────────────────── */
+.pulse { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }

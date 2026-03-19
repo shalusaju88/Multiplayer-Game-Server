@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArenaBlast – Multiplayer Game</title>
+  <meta name="description" content="Real-time multiplayer browser game powered by Node.js and Socket.IO" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── LOBBY VIEW ─────────────────────────────────────────────────────── -->
+  <div id="lobby-view" class="view active">
+    <div class="bg-orbs">
+      <div class="orb orb1"></div>
+      <div class="orb orb2"></div>
+      <div class="orb orb3"></div>
+    </div>
+
+    <header class="lobby-header glass">
+      <h1 class="logo">🎮 Arena<span>Blast</span></h1>
+      <div class="server-stats" id="server-stats">Connecting…</div>
+    </header>
+
+    <div class="lobby-body">
+
+      <!-- LEFT: Join / Create -->
+      <aside class="lobby-card glass" id="join-panel">
+        <h2>Enter the Arena</h2>
+
+        <div class="field-group">
+          <label for="player-name">Your Name</label>
+          <input id="player-name" type="text" placeholder="Enter username…" maxlength="20" autocomplete="off" />
+        </div>
+
+        <div class="field-group">
+          <label for="room-name">Room Name <span class="optional">(to create new)</span></label>
+          <input id="room-name" type="text" placeholder="My Awesome Room" maxlength="30" autocomplete="off" />
+        </div>
+
+        <button id="btn-create" class="btn btn-primary" disabled>
+          <span>⚡ Create Room</span>
+        </button>
+
+        <div class="divider"><span>or join below</span></div>
+
+        <!-- Live Room List -->
+        <div class="room-list" id="room-list">
+          <p class="empty-msg">No rooms yet. Create one!</p>
+        </div>
+      </aside>
+
+      <!-- RIGHT: Instructions -->
+      <aside class="lobby-card glass instructions">
+        <h2>How to Play</h2>
+        <ul class="how-list">
+          <li><span class="key">W A S D</span> Move your character</li>
+          <li><span class="key">Mouse</span> Aim your weapon</li>
+          <li><span class="key">Click</span> Shoot bullets</li>
+          <li><span class="key">T</span> Toggle chat</li>
+          <li><span class="key">ESC</span> Leave game</li>
+        </ul>
+        <div class="badge-row">
+          <div class="badge">🌐 Real-time</div>
+          <div class="badge">⚔️ PvP Arena</div>
+          <div class="badge">💬 In-game Chat</div>
+        </div>
+
+        <div class="tech-stack">
+          <p>Powered by</p>
+          <div class="tech-pills">
+            <span>Node.js</span><span>Express</span><span>Socket.IO</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ── GAME VIEW ──────────────────────────────────────────────────────── -->
+  <div id="game-view" class="view">
+
+    <!-- HUD top bar -->
+    <div id="hud" class="hud glass">
+      <div class="hud-left">
+        <span id="hud-room-name">Room</span>
+        <span class="hud-sep">·</span>
+        <span id="hud-timer">3:00</span>
+      </div>
+      <div class="hud-center">
+        <div class="hud-hp-bar">
+          <div class="hud-hp-fill" id="hud-hp-fill"></div>
+        </div>
+        <span id="hud-hp-text">100 HP</span>
+      </div>
+      <div class="hud-right">
+        <span>⚡ <b id="hud-score">0</b> pts</span>
+        <span>💀 <b id="hud-kills">0</b> kills</span>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Chat panel -->
+    <div id="chat-panel" class="glass hidden">
+      <div id="chat-messages"></div>
+      <div class="chat-input-row">
+        <input id="chat-input" type="text" placeholder="Type message…" maxlength="200" autocomplete="off" />
+        <button id="chat-send">Send</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard sidebar -->
+    <div id="leaderboard-panel" class="glass">
+      <h3>🏆 Leaderboard</h3>
+      <ol id="leaderboard-list"></ol>
+    </div>
+
+    <!-- Kill feed -->
+    <div id="kill-feed"></div>
+
+    <!-- Overlay screens -->
+    <div id="overlay" class="overlay hidden">
+      <div class="overlay-box glass">
+        <div id="overlay-content"></div>
+      </div>
+    </div>
+
+    <!-- ESC button -->
+    <button id="btn-leave-game" class="btn btn-danger leave-btn" title="Leave game">✕ Leave</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
