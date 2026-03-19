@@ -35,7 +35,7 @@ A real-time multiplayer game server built with **Node.js**, **Express**, **Socke
 1. Open your terminal (Command Prompt or PowerShell on Windows, Terminal on Mac/Linux).
 2. Navigate into the project folder using the `cd` command. For example:
    ```bash
-   cd Desktop/ibm
+   cd Desktop/project
    ```
 3. Install the required Node modules:
    ```bash
